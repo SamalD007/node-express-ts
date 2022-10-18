@@ -1,0 +1,38 @@
+name: CI/CD Pipeline
+on:
+  push:
+    branches: [master]
+jobs:
+  continuous-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+        # Install Dependencies
+      - name: Install dependencies
+        run: npm install
+
+      - name: build check
+        run: npm run build
+
+  continuous-deployment:
+    runs-on: ubuntu-latest
+    needs: [continuous-integration]
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Create CodeDeploy Deployment
+        id: deploy
+        run: |
+          # Assuming the Deployment Group is already setup
+          aws deploy create-deployment \
+            --application-name CodeDeploy-2 \
+            --deployment-group-name codedeploy-deployment-group-2 \
+            --deployment-config-name CodeDeployDefault.AllAtOnce \
+            --github-location repository=${{ github.repository }},commitId=${{ github.sha }}

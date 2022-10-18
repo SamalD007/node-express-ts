@@ -1,0 +1,14 @@
+version: 0.0
+os: linux
+files:
+  - source: /
+    destination: /home/ubuntu/node-express-ts
+hooks:
+  AfterInstall:
+    - location: afterinstall.sh
+      timeout: 30
+      runas: root
+  ApplicationStart:
+    - location: applicationstart.sh
+      timeout: 30
+      runas: root
